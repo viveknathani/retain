@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+// Each test function below tests encoding and decoding for the corresponding data type
+
 func TestInt(t *testing.T) {
 
 	testCases := []struct {

@@ -1,3 +1,4 @@
+// this package implements the RESP protocol (https://redis.io/topics/protocol)
 package protocol
 
 import (
@@ -8,6 +9,7 @@ import (
 	"strconv"
 )
 
+// first byte for corresponding type of data
 const (
 	SIMPLE_STRING = '+'
 	ERROR         = '-'
@@ -21,6 +23,8 @@ var (
 	errorMessageInvalidSyntax = errors.New("failed to decode, invalid syntax")
 )
 
+// Encode will take variable type of input as content and
+// output a RESP-compliant string
 func Encode(content interface{}) string {
 
 	switch content.(type) {
@@ -49,6 +53,8 @@ func Encode(content interface{}) string {
 	panic(errorMessageInvalidInput)
 }
 
+// Decode expects a RESP-compliant input and outputs the
+// corresponding data
 func Decode(content []byte) interface{} {
 
 	if len(content) == 0 {
@@ -72,6 +78,8 @@ func Decode(content []byte) interface{} {
 	return errorMessageInvalidSyntax
 }
 
+// excludeCRLFAndReturnIndex will read data until the first
+// occurence of CRLF
 func excludeCRLFAndReturnIndex(input []byte) ([]byte, int) {
 
 	res := make([]byte, 0)
