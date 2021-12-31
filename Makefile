@@ -1,6 +1,6 @@
 build:
-	go build -o ./bin/
-	sudo cp ./bin/retain ~/bin/retain
+	go build -o ./bin/ ./cmd/server/
+	go build -o ./bin/ ./cmd/client/
 
 test:
 	go test -v ./...
