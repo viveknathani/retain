@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"log"
+	"math"
 	"reflect"
 	"testing"
 )
@@ -33,6 +34,31 @@ func TestInt(t *testing.T) {
 		decoded := Decode([]byte(testCase.output))
 		if decoded != testCase.input {
 			log.Fatalf("decoding, input: %s, expected: %d, got: %d", testCase.output, testCase.input, decoded)
+		}
+	}
+}
+
+func TestDouble(t *testing.T) {
+
+	testCases := []struct {
+		input  float64
+		output string
+	}{
+		{1000.2, ",1000.2\r\n"},
+		{-1.5, ",-1.5\r\n"},
+		{0.0, ",0.0\r\n"},
+	}
+
+	for _, testCase := range testCases {
+
+		// encode
+		got := Encode(testCase.input)
+
+		// decode
+		decoded := Decode([]byte(got)).(float64)
+
+		if !compareDouble(decoded, testCase.input) {
+			log.Fatalf("failed TestDouble, input: %f", testCase.input)
 		}
 	}
 }
@@ -136,4 +162,11 @@ func TestArray(t *testing.T) {
 			log.Fatalf("decoding, input: %s, expected: %v, got: %v", testCase.output, testCase.input, decoded)
 		}
 	}
+}
+
+func compareDouble(a float64, b float64) bool {
+
+	const tolerance float64 = 0.0000001
+	var diff float64 = math.Abs(a - b)
+	return diff < tolerance
 }
