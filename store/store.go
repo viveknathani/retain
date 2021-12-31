@@ -56,11 +56,11 @@ func (storage *Storage) Delete(key string) {
 func (storage *Storage) LoadFromDisk(path string) bool {
 
 	file, err := os.Open(path)
-	defer file.Close()
 	if err != nil && os.IsNotExist(err) {
 		return false
 	}
 	handleError("LoadFromDisk: file open", err)
+	defer file.Close()
 
 	var temp map[string]interface{}
 	err = gob.NewDecoder(file).Decode(&temp)
