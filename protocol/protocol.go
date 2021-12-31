@@ -14,6 +14,7 @@ const (
 	SIMPLE_STRING = '+'
 	ERROR         = '-'
 	INTEGER       = ':'
+	DOUBLE        = ','
 	BULK_STRINGS  = '$'
 	ARRAYS        = '*'
 )
@@ -31,6 +32,9 @@ func Encode(content interface{}) string {
 
 	case int:
 		return fmt.Sprintf("%c%d\r\n", INTEGER, content)
+
+	case float64:
+		return fmt.Sprintf("%c%f\r\n", DOUBLE, content)
 
 	case string:
 		return fmt.Sprintf("%c%s\r\n", SIMPLE_STRING, content)
@@ -50,6 +54,7 @@ func Encode(content interface{}) string {
 		}
 		return res
 	}
+
 	panic(errorMessageInvalidInput)
 }
 
@@ -69,6 +74,8 @@ func Decode(content []byte) interface{} {
 		return parseError(content)
 	case INTEGER:
 		return parseInteger(content)
+	case DOUBLE:
+		return parseDouble(content)
 	case BULK_STRINGS:
 		return parseBulkString(content)
 	case ARRAYS:
@@ -121,6 +128,14 @@ func parseInteger(input []byte) int {
 	output, _ := excludeCRLFAndReturnIndex(input[1:])
 	num, err := strconv.Atoi(string(output))
 	handleError("parseError: ", err)
+	return num
+}
+
+func parseDouble(input []byte) float64 {
+
+	output, _ := excludeCRLFAndReturnIndex(input[1:])
+	num, err := strconv.ParseFloat(string(output), 64)
+	handleError("parseDouble: ", err)
 	return num
 }
 
