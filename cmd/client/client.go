@@ -30,6 +30,7 @@ func main() {
 
 		arr := bytes.Split(userInput[0:len(userInput)-1], []byte(" "))
 		_, err = connection.Write([]byte(protocol.Encode(arr)))
+		handleError("client main: ", err)
 
 		buffer := make([]byte, 65535)
 		bytesRead, err := connection.Read(buffer)

@@ -26,7 +26,8 @@ func serve(store *store.Storage, connection net.Conn) {
 		buffer = buffer[0:bytesRead]
 		arr := protocol.Decode(buffer)
 		response := executeCommand(arr.([]interface{}))
-		connection.Write([]byte(protocol.Encode(response)))
+		_, err = connection.Write([]byte(protocol.Encode(response)))
+		handleError("serve: ", err)
 	}
 }
 
