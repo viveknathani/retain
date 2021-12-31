@@ -45,6 +45,15 @@ func Encode(content interface{}) string {
 	case []byte:
 		return fmt.Sprintf("%c%d\r\n%s\r\n", BULK_STRINGS, reflect.ValueOf(content).Len(), content)
 
+	case [][]byte:
+		arr := reflect.ValueOf(content)
+		res := fmt.Sprintf("%c%d\r\n", ARRAYS, arr.Len())
+
+		for i := 0; i < arr.Len(); i++ {
+			res += Encode(arr.Index(i).Interface().([]byte))
+		}
+		return res
+
 	case []interface{}:
 		arr := reflect.ValueOf(content)
 		res := fmt.Sprintf("%c%d\r\n", ARRAYS, arr.Len())
@@ -156,9 +165,21 @@ func parseArray(input []byte) []interface{} {
 
 	start := idx + 3
 	end := start
+
+	ignoreFirstInstanceCRLF := false
 	for start < len(input) && end < len(input) {
 
+		if input[end] == '$' {
+			ignoreFirstInstanceCRLF = true
+		}
+
 		if input[end] == '\r' && end+1 < len(input) && input[end+1] == '\n' {
+
+			if ignoreFirstInstanceCRLF {
+				end++
+				ignoreFirstInstanceCRLF = false
+				continue
+			}
 			arr = append(arr, Decode(input[start:end]))
 			end += 2
 			start = end
