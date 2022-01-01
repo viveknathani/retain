@@ -30,22 +30,22 @@ var (
 // output a RESP-compliant string
 func Encode(content interface{}) RespEncodedString {
 
-	switch content.(type) {
+	switch content := content.(type) {
 
 	case int:
-		return makeInt(content.(int))
+		return makeInt(content)
 
 	case float64:
-		return makeDouble(content.(float64))
+		return makeDouble(content)
 
 	case string:
-		return makeString(content.(string))
+		return makeString(content)
 
 	case error:
-		return makeError(content.(error))
+		return makeError(content)
 
 	case []byte:
-		return makeBulkString(content.([]byte))
+		return makeBulkString(content)
 
 	case [][]byte:
 		arr := reflect.ValueOf(content)
