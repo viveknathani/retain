@@ -53,7 +53,6 @@ func main() {
 				for i := 0; i < list.Len(); i++ {
 					fmt.Printf(">>(%d) %s\n", i+1, list.Index(i))
 				}
-				break
 			default:
 				fmt.Printf(">> %s\n", decoded)
 			}
