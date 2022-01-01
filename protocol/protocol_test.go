@@ -26,7 +26,7 @@ func TestInt(t *testing.T) {
 
 		// encode
 		got := Encode(testCase.input)
-		if got != testCase.output {
+		if string(got) != testCase.output {
 			log.Fatalf("encoding, input: %d, expected: %s, got: %s", testCase.input, testCase.output, got)
 		}
 
@@ -76,7 +76,7 @@ func TestBulkString(t *testing.T) {
 
 		// encode
 		got := Encode(testCase.input)
-		if got != testCase.output {
+		if string(got) != testCase.output {
 			log.Fatalf("encoding, input: %v, expected: %s, got: %s", testCase.input, testCase.output, got)
 		}
 
@@ -101,7 +101,7 @@ func TestString(t *testing.T) {
 
 		// encode
 		got := Encode(testCase.input)
-		if got != testCase.output {
+		if string(got) != testCase.output {
 			log.Fatalf("encoding, input: %s, expected: %s, got: %s", testCase.input, testCase.output, got)
 		}
 
@@ -126,7 +126,7 @@ func TestError(t *testing.T) {
 
 		// encode
 		got := Encode(testCase.input)
-		if got != testCase.output {
+		if string(got) != testCase.output {
 			log.Fatalf("encoding, input: %s, expected: %s, got: %s", testCase.input, testCase.output, got)
 		}
 
@@ -152,7 +152,7 @@ func TestArray(t *testing.T) {
 
 		// encode
 		got := Encode(testCase.input)
-		if got != testCase.output {
+		if string(got) != testCase.output {
 			log.Fatalf("encoding, input: %s, expected: %s, got: %s", testCase.input, testCase.output, got)
 		}
 

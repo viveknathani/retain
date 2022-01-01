@@ -27,12 +27,12 @@ func serve(store *store.Storage, connection net.Conn) {
 		buffer = buffer[0:bytesRead]
 		arr := protocol.Decode(buffer)
 		response := executeCommand(store, arr.([]interface{}))
-		_, err = connection.Write([]byte(response))
+		_, err = connection.Write(response)
 		handleError("serve: ", err)
 	}
 }
 
-func executeCommand(store *store.Storage, respArray []interface{}) string {
+func executeCommand(store *store.Storage, respArray []interface{}) protocol.RespEncodedString {
 
 	response := ""
 	errorMessage := protocol.Encode(errors.New("invalid command syntax"))
@@ -57,7 +57,7 @@ func executeCommand(store *store.Storage, respArray []interface{}) string {
 
 		key := respArray[1].([]byte)
 		value := respArray[2].([]byte)
-		store.Set(string(key), value)
+		store.Set(key, value)
 		response = "OK"
 
 	case "GET":
@@ -66,7 +66,7 @@ func executeCommand(store *store.Storage, respArray []interface{}) string {
 		}
 
 		key := respArray[1].([]byte)
-		value, ok := store.Get(string(key))
+		value, ok := store.Get(key)
 
 		if !ok {
 			return protocol.Encode(errors.New("(nil)"))
@@ -79,7 +79,7 @@ func executeCommand(store *store.Storage, respArray []interface{}) string {
 		}
 
 		key := respArray[1].([]byte)
-		store.Delete(string(key))
+		store.Delete(key)
 		response = "OK"
 
 	case "MSET":
@@ -91,7 +91,7 @@ func executeCommand(store *store.Storage, respArray []interface{}) string {
 		for i := 1; i < len(respArray); i += 2 {
 			key := respArray[i].([]byte)
 			value := respArray[i+1].([]byte)
-			store.Set(string(key), value)
+			store.Set(key, value)
 		}
 
 		response = "OK"
@@ -105,7 +105,7 @@ func executeCommand(store *store.Storage, respArray []interface{}) string {
 		arr := make([][]byte, 0)
 		for i := 1; i < len(respArray); i++ {
 			key := respArray[i].([]byte)
-			value, ok := store.Get(string(key))
+			value, ok := store.Get(key)
 			if !ok {
 				arr = append(arr, []byte("(nil)"))
 				continue

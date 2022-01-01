@@ -14,6 +14,9 @@ type Storage struct {
 	internal sync.Map
 }
 
+type RetainKey []byte
+type RetainValue interface{}
+
 // New will return a new instance of store.Storage
 // It will have content loaded from disk if retain.db exists.
 func New() *Storage {
@@ -31,9 +34,9 @@ func New() *Storage {
 }
 
 // Get gives you the value stored at key
-func (storage *Storage) Get(key string) (interface{}, bool) {
+func (storage *Storage) Get(key RetainKey) (interface{}, bool) {
 
-	value, ok := storage.internal.Load(key)
+	value, ok := storage.internal.Load(string(key))
 	if !ok {
 		return nil, false
 	}
@@ -41,15 +44,15 @@ func (storage *Storage) Get(key string) (interface{}, bool) {
 }
 
 // Set lets you store/update a key-value pair
-func (storage *Storage) Set(key string, value interface{}) {
+func (storage *Storage) Set(key RetainKey, value RetainValue) {
 
-	storage.internal.Store(key, value)
+	storage.internal.Store(string(key), value)
 }
 
 // Delete will wipe out the relevant key-value pair
-func (storage *Storage) Delete(key string) {
+func (storage *Storage) Delete(key RetainKey) {
 
-	storage.internal.Delete(key)
+	storage.internal.Delete(string(key))
 }
 
 // LoadFromDisk lets you load your data from a given path

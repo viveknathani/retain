@@ -9,6 +9,8 @@ import (
 	"strconv"
 )
 
+type RespEncodedString []byte
+
 // first byte for corresponding type of data
 const (
 	SIMPLE_STRING = '+'
@@ -26,40 +28,42 @@ var (
 
 // Encode will take variable type of input as content and
 // output a RESP-compliant string
-func Encode(content interface{}) string {
+func Encode(content interface{}) RespEncodedString {
 
 	switch content.(type) {
 
 	case int:
-		return fmt.Sprintf("%c%d\r\n", INTEGER, content)
+		return makeInt(content.(int))
 
 	case float64:
-		return fmt.Sprintf("%c%f\r\n", DOUBLE, content)
+		return makeDouble(content.(float64))
 
 	case string:
-		return fmt.Sprintf("%c%s\r\n", SIMPLE_STRING, content)
+		return makeString(content.(string))
 
 	case error:
-		return fmt.Sprintf("%c%s\r\n", ERROR, content)
+		return makeError(content.(error))
 
 	case []byte:
-		return fmt.Sprintf("%c%d\r\n%s\r\n", BULK_STRINGS, reflect.ValueOf(content).Len(), content)
+		return makeBulkString(content.([]byte))
 
 	case [][]byte:
 		arr := reflect.ValueOf(content)
-		res := fmt.Sprintf("%c%d\r\n", ARRAYS, arr.Len())
+		res := []byte(fmt.Sprintf("%c%d\r\n", ARRAYS, arr.Len()))
 
 		for i := 0; i < arr.Len(); i++ {
-			res += Encode(arr.Index(i).Interface().([]byte))
+			encoded := Encode(arr.Index(i).Interface().([]byte))
+			res = append(res, encoded...)
 		}
 		return res
 
 	case []interface{}:
 		arr := reflect.ValueOf(content)
-		res := fmt.Sprintf("%c%d\r\n", ARRAYS, arr.Len())
+		res := []byte(fmt.Sprintf("%c%d\r\n", ARRAYS, arr.Len()))
 
 		for i := 0; i < arr.Len(); i++ {
-			res += Encode(arr.Index(i).Interface())
+			encoded := Encode(arr.Index(i).Interface())
+			res = append(res, encoded...)
 		}
 		return res
 	}
@@ -69,7 +73,7 @@ func Encode(content interface{}) string {
 
 // Decode expects a RESP-compliant input and outputs the
 // corresponding data
-func Decode(content []byte) interface{} {
+func Decode(content RespEncodedString) interface{} {
 
 	if len(content) == 0 {
 		return errorMessageInvalidSyntax
@@ -94,11 +98,74 @@ func Decode(content []byte) interface{} {
 	return errorMessageInvalidSyntax
 }
 
+var CRLF = RespEncodedString("\r\n")
+
+func makeInt(number int) RespEncodedString {
+
+	buffer := make(RespEncodedString, 0)
+	buffer = append(buffer, INTEGER)
+
+	num := []byte(strconv.Itoa(number))
+	buffer = append(buffer, num...)
+	buffer = append(buffer, CRLF[:]...)
+
+	return buffer
+}
+
+func makeDouble(number float64) RespEncodedString {
+
+	buffer := make(RespEncodedString, 0)
+	buffer = append(buffer, DOUBLE)
+
+	num := []byte(fmt.Sprintf("%f", number))
+	buffer = append(buffer, num...)
+	buffer = append(buffer, CRLF[:]...)
+
+	return buffer
+}
+
+func makeError(err error) RespEncodedString {
+
+	buffer := make(RespEncodedString, 0)
+	buffer = append(buffer, ERROR)
+
+	raw := []byte(err.Error())
+	buffer = append(buffer, raw...)
+	buffer = append(buffer, CRLF[:]...)
+
+	return buffer
+}
+
+func makeString(str string) RespEncodedString {
+
+	buffer := make(RespEncodedString, 0)
+	buffer = append(buffer, SIMPLE_STRING)
+
+	raw := []byte(str)
+	buffer = append(buffer, raw...)
+	buffer = append(buffer, CRLF[:]...)
+
+	return buffer
+}
+
+func makeBulkString(data []byte) RespEncodedString {
+
+	buffer := make(RespEncodedString, 0)
+	buffer = append(buffer, BULK_STRINGS)
+
+	buffer = append(buffer, RespEncodedString(strconv.Itoa(len(data)))...)
+	buffer = append(buffer, CRLF[:]...)
+	buffer = append(buffer, data...)
+	buffer = append(buffer, CRLF[:]...)
+
+	return buffer
+}
+
 // excludeCRLFAndReturnIndex will read data until the first
 // occurence of CRLF
-func excludeCRLFAndReturnIndex(input []byte) ([]byte, int) {
+func excludeCRLFAndReturnIndex(input RespEncodedString) ([]byte, int) {
 
-	res := make([]byte, 0)
+	res := make(RespEncodedString, 0)
 	lastValidIndex := -1
 	for i := 0; i < len(input); i++ {
 
@@ -120,19 +187,19 @@ func handleError(text string, err error) {
 	}
 }
 
-func parseSimpleString(input []byte) string {
+func parseSimpleString(input RespEncodedString) string {
 
 	output, _ := excludeCRLFAndReturnIndex(input[1:])
 	return string(output)
 }
 
-func parseError(input []byte) error {
+func parseError(input RespEncodedString) error {
 
 	output, _ := excludeCRLFAndReturnIndex(input[1:])
 	return errors.New(string(output))
 }
 
-func parseInteger(input []byte) int {
+func parseInteger(input RespEncodedString) int {
 
 	output, _ := excludeCRLFAndReturnIndex(input[1:])
 	num, err := strconv.Atoi(string(output))
@@ -140,7 +207,7 @@ func parseInteger(input []byte) int {
 	return num
 }
 
-func parseDouble(input []byte) float64 {
+func parseDouble(input RespEncodedString) float64 {
 
 	output, _ := excludeCRLFAndReturnIndex(input[1:])
 	num, err := strconv.ParseFloat(string(output), 64)
@@ -148,14 +215,14 @@ func parseDouble(input []byte) float64 {
 	return num
 }
 
-func parseBulkString(input []byte) []byte {
+func parseBulkString(input RespEncodedString) []byte {
 
 	_, idx := excludeCRLFAndReturnIndex(input[1:])
 	output, _ := excludeCRLFAndReturnIndex(input[idx+3:]) // skip \r\n and 1 more since it is based on input[1:]
 	return output
 }
 
-func parseArray(input []byte) []interface{} {
+func parseArray(input RespEncodedString) []interface{} {
 
 	temp, idx := excludeCRLFAndReturnIndex(input[1:])
 	_, err := strconv.Atoi(string(temp))

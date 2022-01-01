@@ -38,7 +38,7 @@ func main() {
 			handleError("client main: ", err)
 
 			arr := customSplit(userInput[0 : len(userInput)-1])
-			_, err = connection.Write([]byte(protocol.Encode(arr)))
+			_, err = connection.Write(protocol.Encode(arr))
 			handleError("client main: ", err)
 
 			buffer := make([]byte, 65535)
@@ -68,7 +68,7 @@ func waitForSignal(connection net.Conn, sig <-chan os.Signal, done chan<- bool) 
 	captured := <-sig
 	arr := make([][]byte, 0)
 	arr = append(arr, []byte("SAVE"))
-	_, err := connection.Write([]byte(protocol.Encode(arr)))
+	_, err := connection.Write(protocol.Encode(arr))
 	handleError("waitForSignal, upon saving:", err)
 	fmt.Println()
 	fmt.Println(captured)

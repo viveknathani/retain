@@ -7,11 +7,11 @@ import (
 )
 
 var testCases = []struct {
-	key   string
+	key   RetainKey
 	value interface{}
 }{
-	{key: "hello", value: 5},
-	{key: "hey", value: "56"},
+	{key: RetainKey("hello"), value: 5},
+	{key: RetainKey("hey"), value: "56"},
 }
 
 func TestGetAndSet(t *testing.T) {
