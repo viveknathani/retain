@@ -41,15 +41,14 @@ func executeCommand(store *store.Storage, respArray []interface{}) string {
 	case "PING":
 		if len(respArray) > 1 {
 			response = string(respArray[1].([]byte))
+			break
 		}
-		response = ""
-		break
+		response = "PONG"
 
 	case "ECHO":
 		if len(respArray) > 1 {
 			response = string(respArray[1].([]byte))
 		}
-		break
 
 	case "SET":
 		if len(respArray) != 3 {
@@ -73,7 +72,6 @@ func executeCommand(store *store.Storage, respArray []interface{}) string {
 			return protocol.Encode(errors.New("(nil)"))
 		}
 		response = string(value.([]byte))
-		break
 
 	case "DEL":
 		if len(respArray) != 2 {
@@ -83,7 +81,6 @@ func executeCommand(store *store.Storage, respArray []interface{}) string {
 		key := respArray[1].([]byte)
 		store.Delete(string(key))
 		response = "OK"
-		break
 
 	case "MSET":
 
@@ -98,7 +95,7 @@ func executeCommand(store *store.Storage, respArray []interface{}) string {
 		}
 
 		response = "OK"
-		break
+
 	case "MGET":
 
 		if len(respArray) == 1 {
