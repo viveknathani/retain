@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -25,36 +26,108 @@ func serve(store *store.Storage, connection net.Conn) {
 
 		buffer = buffer[0:bytesRead]
 		arr := protocol.Decode(buffer)
-		response := executeCommand(arr.([]interface{}))
-		_, err = connection.Write([]byte(protocol.Encode(response)))
+		response := executeCommand(store, arr.([]interface{}))
+		_, err = connection.Write([]byte(response))
 		handleError("serve: ", err)
 	}
 }
 
-func executeCommand(respArray []interface{}) string {
+func executeCommand(store *store.Storage, respArray []interface{}) string {
 
+	response := ""
+	errorMessage := protocol.Encode(errors.New("invalid command syntax"))
 	switch string(respArray[0].([]byte)) {
 
 	case "PING":
 		if len(respArray) > 1 {
-			return string(respArray[1].([]byte))
+			response = string(respArray[1].([]byte))
 		}
-		return "PONG"
+		response = ""
+		break
 
 	case "ECHO":
 		if len(respArray) > 1 {
-			return string(respArray[1].([]byte))
+			response = string(respArray[1].([]byte))
 		}
-		return ""
+		break
 
 	case "SET":
+		if len(respArray) != 3 {
+			return errorMessage
+		}
+
+		key := respArray[1].([]byte)
+		value := respArray[2].([]byte)
+		store.Set(string(key), value)
+		response = "OK"
+
 	case "GET":
+		if len(respArray) != 2 {
+			return errorMessage
+		}
+
+		key := respArray[1].([]byte)
+		value, ok := store.Get(string(key))
+
+		if !ok {
+			return protocol.Encode(errors.New("(nil)"))
+		}
+		response = string(value.([]byte))
+		break
+
 	case "DEL":
+		if len(respArray) != 2 {
+			return errorMessage
+		}
+
+		key := respArray[1].([]byte)
+		store.Delete(string(key))
+		response = "OK"
+		break
+
 	case "MSET":
+
+		if len(respArray)%2 == 0 || len(respArray) == 1 {
+			return errorMessage
+		}
+
+		for i := 1; i < len(respArray); i += 2 {
+			key := respArray[i].([]byte)
+			value := respArray[i+1].([]byte)
+			store.Set(string(key), value)
+		}
+
+		response = "OK"
+		break
 	case "MGET":
+
+		if len(respArray) == 1 {
+			return errorMessage
+		}
+
+		arr := make([][]byte, 0)
+		for i := 1; i < len(respArray); i++ {
+			key := respArray[i].([]byte)
+			value, ok := store.Get(string(key))
+			if !ok {
+				arr = append(arr, []byte("(nil)"))
+				continue
+			}
+			arr = append(arr, value.([]byte))
+		}
+
+		return protocol.Encode(arr)
+
+	case "SAVE":
+		if len(respArray) != 1 {
+			return errorMessage
+		}
+		store.Save()
+	default:
+		return errorMessage
 	}
 
-	return "nothing"
+	return protocol.Encode(response)
 }
 
 func main() {
