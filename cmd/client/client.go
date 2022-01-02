@@ -44,7 +44,8 @@ func main() {
 	handleError("client main: ", err)
 
 	printColor(colorGreen)
-	fmt.Printf("connected to %s:%d\n", *host, *port)
+	fmt.Printf("we are %s\n", connection.LocalAddr().String())
+	fmt.Printf("connected to %s\n", connection.RemoteAddr().String())
 	printColor(colorReset)
 
 	sig := make(chan os.Signal, 1)
