@@ -16,7 +16,7 @@ var testCases = []struct {
 
 func TestGetAndSet(t *testing.T) {
 
-	mp := New()
+	mp, _ := New()
 	for _, testCase := range testCases {
 
 		mp.Set(testCase.key, testCase.value)
@@ -31,7 +31,7 @@ func TestGetAndSet(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 
-	mp := New()
+	mp, _ := New()
 	for _, testCase := range testCases {
 
 		mp.Set(testCase.key, testCase.value)
@@ -46,7 +46,7 @@ func TestDelete(t *testing.T) {
 
 func TestSaveAndLoad(t *testing.T) {
 
-	mp := New()
+	mp, _ := New()
 	for _, testCase := range testCases {
 		mp.Set(testCase.key, testCase.value)
 	}

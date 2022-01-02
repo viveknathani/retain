@@ -2,7 +2,6 @@ package store
 
 import (
 	"encoding/gob"
-	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -19,18 +18,14 @@ type RetainValue interface{}
 
 // New will return a new instance of store.Storage
 // It will have content loaded from disk if retain.db exists.
-func New() *Storage {
+func New() (*Storage, bool) {
 
 	storage := Storage{
 		internal: *new(sync.Map),
 	}
 
 	loadedFromDisk := storage.LoadFromDisk(fileName)
-	if loadedFromDisk {
-		fmt.Printf("Loaded from disk: %s", fileName)
-	}
-
-	return &storage
+	return &storage, loadedFromDisk
 }
 
 // Get gives you the value stored at key
