@@ -120,6 +120,8 @@ func executeCommand(store *store.Storage, respArray []interface{}) protocol.Resp
 			return errorMessage
 		}
 		store.Save()
+
+		response = "OK"
 	default:
 		return errorMessage
 	}
