@@ -4,15 +4,35 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"os/signal"
 	"reflect"
+	"runtime"
 	"syscall"
 
 	"github.com/viveknathani/retain/protocol"
 )
+
+const (
+	colorReset  = "\033[0m"
+	colorRed    = "\033[31m"
+	colorGreen  = "\033[32m"
+	colorYellow = "\033[33m"
+	colorBlue   = "\033[34m"
+	colorPurple = "\033[35m"
+	colorCyan   = "\033[36m"
+	colorWhite  = "\033[37m"
+	colorPink   = "\033[38;5;13m"
+)
+
+func printColor(colorName string) {
+
+	os := runtime.GOOS
+	if os != "windows" {
+		fmt.Print(colorName)
+	}
+}
 
 func main() {
 
@@ -23,6 +43,10 @@ func main() {
 	connection, err := net.Dial("tcp", *host+":"+fmt.Sprint(*port))
 	handleError("client main: ", err)
 
+	printColor(colorGreen)
+	fmt.Printf("connected to %s:%d\n", *host, *port)
+	printColor(colorReset)
+
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	done := make(chan bool, 1)
@@ -32,6 +56,7 @@ func main() {
 
 		for {
 
+			printColor(colorCyan)
 			fmt.Print("> ")
 			userReader := bufio.NewReader(os.Stdin)
 			userInput, err := userReader.ReadBytes('\n')
@@ -47,6 +72,7 @@ func main() {
 			buffer = buffer[0:bytesRead]
 			decoded := protocol.Decode(buffer)
 
+			printColor(colorPink)
 			switch decoded.(type) {
 			case []interface{}:
 				list := reflect.ValueOf(decoded)
@@ -56,6 +82,7 @@ func main() {
 			default:
 				fmt.Printf(">> %s\n", decoded)
 			}
+			printColor(colorReset)
 		}
 	}()
 
@@ -70,7 +97,7 @@ func waitForSignal(connection net.Conn, sig <-chan os.Signal, done chan<- bool) 
 	arr = append(arr, []byte("SAVE"))
 	_, err := connection.Write(protocol.Encode(arr))
 	handleError("waitForSignal, upon saving:", err)
-	fmt.Println()
+	fmt.Println(colorReset)
 	fmt.Println(captured)
 	done <- true
 }
@@ -78,7 +105,10 @@ func waitForSignal(connection net.Conn, sig <-chan os.Signal, done chan<- bool) 
 func handleError(text string, err error) {
 
 	if err != nil {
-		log.Fatal(text, err)
+		printColor(colorRed)
+		fmt.Println(text, err)
+		printColor(colorReset)
+		os.Exit(1)
 	}
 }
 
