@@ -200,6 +200,9 @@ func main() {
 	listener, err := net.Listen("tcp", *host+":"+fmt.Sprint(*port))
 	handleError("server main: ", err)
 
+	printColor(colorGreen)
+	fmt.Printf("listening at %s\n", listener.Addr().String())
+	printColor(colorReset)
 	storage, loadedFromDisk := store.New()
 
 	if loadedFromDisk {
