@@ -97,7 +97,8 @@ func waitForSignal(connection net.Conn, sig <-chan os.Signal, done chan<- bool) 
 	arr = append(arr, []byte("SAVE"))
 	_, err := connection.Write(protocol.Encode(arr))
 	handleError("waitForSignal, upon saving:", err)
-	fmt.Println(colorReset)
+	printColor(colorReset)
+	fmt.Println()
 	fmt.Println(captured)
 	done <- true
 }
