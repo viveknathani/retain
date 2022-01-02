@@ -1,6 +1,6 @@
 # retain
 
-retain is a key-value store. It is inspired by [Redis](https://redis.io/) and hence uses the client-server interaction is based on [RESP](https://redis.io/topics/protocol) over TCP. It implements a subset of commands supported by Redis.  
+retain is a key-value store. It is inspired by [Redis](https://redis.io/) and hence the client-server interaction is based on [RESP](https://redis.io/topics/protocol) over TCP. It implements a subset of commands supported by Redis.  
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/viveknathani/retain)](https://goreportcard.com/report/github.com/viveknathani/retain) [![Maintainability](https://api.codeclimate.com/v1/badges/3a88100c22a2b6e20df9/maintainability)](https://codeclimate.com/github/viveknathani/retain/maintainability) [![test](https://github.com/viveknathani/retain/actions/workflows/test.yaml/badge.svg)](https://github.com/viveknathani/retain/actions/workflows/test.yaml) ![release](https://img.shields.io/github/v/release/viveknathani/retain)
 <img src='./screenshot.PNG'> 
